@@ -87,6 +87,40 @@ Pipeline:
   `September 2014`, `May 29, 2014`). Add new atoms there rather than adding
   parallel patterns.
 
+## Current state (as of initial commit)
+
+The code is complete and tested end-to-end. A full `--batch` run was executed
+against all 13 PDFs in `finding_aids/` for ~$2.63 total, producing 1,132
+records in `output/` (git-ignored).
+
+**Important:** the prompt and validator were patched *after* that batch run
+to make Sonnet less conservative about Item-level records and to accept more
+RAD date forms. Only `output/86-4.csv` reflects the patches; the other 12
+CSVs were generated with the older prompt and have **zero Items** even where
+the PDFs explicitly enumerate named pieces.
+
+Open work for the next session:
+
+1. **Required before AtoM import — `qubitParentSlug` fix.** `--batch` mode
+   fell back to inferring the slug from each accession (e.g. `"86-4"`), but
+   AtoM Fonds slugs are donor-name-based (e.g. `"margaret-messer-2"`). Every
+   top-level Series row in every CSV needs its slug column corrected to
+   match the existing AtoM Fonds record. The user needs to gather the real
+   slugs from their AtoM instance first; then either re-run each PDF with
+   `--parent-slug <slug>` or find/replace the column.
+2. **Optional — re-run remaining 12 PDFs with the patched prompt.** Cost
+   ~$2.50. Items will likely appear in `86-72.pdf` and the other PDFs that
+   have indented named-piece lists under file headings.
+3. **Known structural ambiguity (do not "fix" without confirming with the
+   user).** Sonnet sometimes interprets a thematic grouping (e.g.
+   "Commissions") as `File + Items` where a human curator would prefer
+   `Sub-Series + Files`. Both are valid RAD; resolving requires either a
+   prompt refinement with examples or post-conversion editing.
+4. **Known structural ambiguity (small PDFs).** When a PDF has no Series
+   headings (e.g. `95_63.pdf`, parts of `89-32.pdf`), Sonnet promotes each
+   top-level item to its own Series rather than synthesizing a "General"
+   Series. Either pattern imports fine into AtoM.
+
 ## Reference materials
 
 - `example/86_4.pdf` + `example/atom_example.csv` — canonical input/output
